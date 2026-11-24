@@ -128,7 +128,7 @@ rag/            sistemin modülleri (loader, chunker, embedder, search, llm, pip
 data/raw/       kurgusal şirket dokümanları
 data/testset.jsonl   40 soruluk test seti
 tests/          53 birim testi
-dersler/        her adımın öğrenme notları (Türkçe)
+dersler/        her adımın öğrenme notları (Türkçe) + rehber.html: quizli etkileşimli çalışma rehberi
 ders01..07_*.py her adımı adım adım gösteren betikler
 sonuclar/       ölçüm sonuçları
 sor.py          soru-cevap arayüzü
