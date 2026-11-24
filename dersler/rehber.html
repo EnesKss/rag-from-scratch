@@ -1,0 +1,887 @@
+<title>RAG Çalışma Rehberi</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: sabit sol içindekiler + tek okuma sütunu; her modül aynı iskelet (özet → projede → akılda tut → oyun alanı → quiz → görev → mülakat) */
+:root {
+  --bg: #f4f6fa;
+  --surface: #ffffff;
+  --sunk: #eaeef6;
+  --ink: #15203a;
+  --muted: #586179;
+  --line: #d6dceb;
+  --accent: #2c56e0;
+  --accent-soft: #e3eafd;
+  --mark: #ffe27a;
+  --good: #1d7a4a;
+  --good-soft: #e1f4e9;
+  --bad: #b3342c;
+  --bad-soft: #fbe6e4;
+  --code-bg: #101a33;
+  --code-ink: #dbe3f7;
+  --code-dim: #8c9bbd;
+  --f-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body: "Inter", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "JetBrains Mono", Consolas, "Courier New", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1322; --surface: #161d31; --sunk: #1d2540; --ink: #e5e9f4; --muted: #9ba5bf; --line: #2b3554;
+    --accent: #84a1ff; --accent-soft: #1f2a4d; --mark: #6b5a12; --good: #6fd39c; --good-soft: #15301f;
+    --bad: #ff8f86; --bad-soft: #3a1a18; --code-bg: #0a0f1d; --code-ink: #dbe3f7; --code-dim: #7d8bad;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1322; --surface: #161d31; --sunk: #1d2540; --ink: #e5e9f4; --muted: #9ba5bf; --line: #2b3554;
+  --accent: #84a1ff; --accent-soft: #1f2a4d; --mark: #6b5a12; --good: #6fd39c; --good-soft: #15301f;
+  --bad: #ff8f86; --bad-soft: #3a1a18; --code-bg: #0a0f1d; --code-ink: #dbe3f7; --code-dim: #7d8bad;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 16px; line-height: 1.65; }
+.shell { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 40px; max-width: 1180px; margin: 0 auto;
+  padding-block: 32px 80px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+nav.toc { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 24px); align-self: start; display: flex; flex-direction: column; gap: 4px; }
+.toc-title { font-family: var(--f-display); font-weight: 700; font-size: 1.15rem; margin-bottom: 6px; }
+.toc-progress { font-size: .8rem; color: var(--muted); margin-bottom: 10px; }
+.bar { height: 6px; background: var(--sunk); border-radius: 3px; overflow: hidden; margin-top: 6px; }
+.bar > span { display: block; height: 100%; background: var(--accent); width: 0; transition: width .3s; }
+nav.toc a { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 8px; color: var(--ink); text-decoration: none; font-size: .9rem; }
+nav.toc a:hover, nav.toc a:focus-visible { background: var(--accent-soft); outline: none; }
+nav.toc a .chk { width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--line); flex: none; display: grid; place-items: center; font-size: .7rem; color: transparent; }
+nav.toc a.done .chk { background: var(--good); border-color: var(--good); color: var(--surface); }
+nav.toc .sep { height: 1px; background: var(--line); margin: 8px 0; }
+main { min-width: 0; display: flex; flex-direction: column; gap: 56px; }
+h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; line-height: 1.2; margin: 0; }
+h1 { font-size: clamp(2rem, 5vw, 3rem); font-weight: 700; letter-spacing: -.01em; }
+h2 { font-size: 1.75rem; font-weight: 700; }
+h3 { font-size: 1.1rem; font-weight: 700; margin-top: 8px; }
+p { margin: 0; max-width: 68ch; }
+.lede { font-size: 1.12rem; color: var(--muted); max-width: 62ch; }
+.eyebrow { font-size: .75rem; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
+section.mod { display: flex; flex-direction: column; gap: 18px; scroll-margin-top: 24px; }
+.mod-head { display: flex; flex-direction: column; gap: 6px; padding-bottom: 14px; border-bottom: 2px solid var(--ink); }
+mark { background: var(--mark); color: inherit; padding: 0 3px; border-radius: 3px; }
+ul.keys { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; max-width: 68ch; }
+.analogy { background: var(--accent-soft); border-radius: 12px; padding: 14px 18px; max-width: 72ch; }
+.analogy b { color: var(--accent); }
+.pitfall { border: 1px solid var(--bad); background: var(--bad-soft); border-radius: 12px; padding: 12px 16px; max-width: 72ch; }
+.pitfall b { color: var(--bad); }
+pre { background: var(--code-bg); color: var(--code-ink); font-family: var(--f-mono); font-size: .84rem; line-height: 1.55;
+  padding: 16px 18px; border-radius: 12px; overflow-x: auto; margin: 0; max-width: 100%; }
+pre .c { color: var(--code-dim); }
+pre .k { color: #ffcf6e; }
+.file { font-family: var(--f-mono); font-size: .78rem; color: var(--muted); margin-bottom: -10px; }
+code { font-family: var(--f-mono); font-size: .88em; background: var(--sunk); padding: 1px 5px; border-radius: 4px; }
+pre code { background: none; padding: 0; font-size: inherit; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.panel-label { font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.task { border-left: 4px solid var(--accent); }
+.task ol { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
+details.interview { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px 20px; }
+details.interview summary { cursor: pointer; font-weight: 600; }
+details.interview summary::marker { color: var(--accent); }
+details.interview[open] summary { margin-bottom: 10px; }
+.done-row { display: flex; align-items: center; gap: 10px; }
+.btn { font: inherit; font-weight: 600; font-size: .9rem; border: 1.5px solid var(--accent); background: var(--surface); color: var(--accent); padding: 8px 14px; border-radius: 10px; cursor: pointer; }
+.btn:hover, .btn:focus-visible { background: var(--accent-soft); outline: none; }
+.btn.primary { background: var(--accent); color: var(--surface); }
+.btn.on { background: var(--good); border-color: var(--good); color: var(--surface); }
+/* quiz */
+.q { display: flex; flex-direction: column; gap: 8px; padding-top: 12px; border-top: 1px dashed var(--line); }
+.q:first-of-type { border-top: 0; padding-top: 0; }
+.q-text { font-weight: 600; }
+.opts { display: flex; flex-direction: column; gap: 6px; }
+.opt { text-align: left; font: inherit; font-size: .93rem; color: var(--ink); background: var(--bg); border: 1.5px solid var(--line); border-radius: 10px; padding: 8px 12px; cursor: pointer; }
+.opt:hover:not(:disabled), .opt:focus-visible { border-color: var(--accent); outline: none; }
+.opt:disabled { cursor: default; }
+.opt.right { border-color: var(--good); background: var(--good-soft); }
+.opt.wrong { border-color: var(--bad); background: var(--bad-soft); }
+.why { font-size: .9rem; color: var(--muted); }
+.why b { color: var(--ink); }
+.score { font-family: var(--f-display); font-size: 1.1rem; font-weight: 700; }
+/* playgrounds */
+.controls { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: end; }
+.controls label { display: flex; flex-direction: column; gap: 4px; font-size: .82rem; color: var(--muted); font-weight: 500; }
+input[type=number], select, textarea { font: inherit; font-size: .9rem; color: var(--ink); background: var(--bg); border: 1.5px solid var(--line); border-radius: 8px; padding: 6px 8px; }
+textarea { font-family: var(--f-mono); font-size: .8rem; width: 100%; min-height: 150px; resize: vertical; }
+input[type=number] { width: 90px; }
+input[type=range] { width: 180px; accent-color: var(--accent); }
+.chunks { display: flex; flex-direction: column; gap: 8px; }
+.chunk { border-radius: 10px; padding: 8px 12px; font-family: var(--f-mono); font-size: .76rem; white-space: pre-wrap; word-break: break-word; border: 1.5px solid; }
+.chunk .meta { font-family: var(--f-body); font-size: .72rem; font-weight: 600; display: block; margin-bottom: 4px; }
+.stat { font-size: .85rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.twocol { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.twocol > * { min-width: 0; }
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; font-size: .88rem; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); }
+th { font-size: .75rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+td.num { text-align: right; font-family: var(--f-mono); }
+tr.top td { background: var(--good-soft); font-weight: 600; }
+.vec-svg { width: 100%; max-width: 320px; height: auto; }
+.vec-svg text { font-family: var(--f-body); font-size: 11px; fill: var(--muted); }
+.big { font-family: var(--f-display); font-size: 2rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.plan { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+.day { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; }
+.day .d { font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); font-weight: 700; }
+.day .t { font-weight: 600; }
+.day .s { font-size: .86rem; color: var(--muted); }
+dl.gloss { display: grid; grid-template-columns: max-content 1fr; gap: 8px 18px; margin: 0; }
+dl.gloss dt { font-family: var(--f-mono); font-size: .86rem; font-weight: 500; color: var(--accent); }
+dl.gloss dd { margin: 0; font-size: .93rem; }
+.pipeline { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: .85rem; }
+.pipeline span { background: var(--surface); border: 1.5px solid var(--line); border-radius: 8px; padding: 5px 10px; font-weight: 500; }
+.pipeline span.here { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); font-weight: 700; }
+.pipeline i { color: var(--muted); font-style: normal; }
+@media (max-width: 860px) {
+  .shell { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  nav.toc { position: static; display: grid; grid-template-columns: 1fr 1fr; }
+  .toc-title, .toc-progress, nav.toc .sep { grid-column: 1 / -1; }
+  .twocol { grid-template-columns: minmax(0, 1fr); }
+  dl.gloss { grid-template-columns: minmax(0, 1fr); gap: 2px 0; }
+  dl.gloss dd { margin-bottom: 8px; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
+html { scroll-behavior: smooth; }
+</style>
+
+<div class="shell">
+  <nav class="toc" aria-label="İçindekiler">
+    <div class="toc-title">RAG Çalışma Rehberi</div>
+    <div class="toc-progress"><span id="prog-text">0 / 8 modül</span><div class="bar"><span id="prog-bar"></span></div></div>
+    <a href="#baslarken"><span class="chk">✓</span>Başlarken</a>
+    <div class="sep"></div>
+    <a href="#m1" data-mod="m1"><span class="chk">✓</span>1 · RAG nedir?</a>
+    <a href="#m2" data-mod="m2"><span class="chk">✓</span>2 · Yükleme</a>
+    <a href="#m3" data-mod="m3"><span class="chk">✓</span>3 · Chunking</a>
+    <a href="#m4" data-mod="m4"><span class="chk">✓</span>4 · Embedding</a>
+    <a href="#m5" data-mod="m5"><span class="chk">✓</span>5 · Arama</a>
+    <a href="#m6" data-mod="m6"><span class="chk">✓</span>6 · Prompt ve kaynak</a>
+    <a href="#m7" data-mod="m7"><span class="chk">✓</span>7 · Ölçüm</a>
+    <a href="#m8" data-mod="m8"><span class="chk">✓</span>8 · Mühendislik</a>
+    <div class="sep"></div>
+    <a href="#sinav"><span class="chk">✓</span>Final sınavı</a>
+    <a href="#sozluk"><span class="chk">✓</span>Sözlük</a>
+  </nav>
+
+  <main>
+    <!-- ============================================================ BAŞLARKEN -->
+    <section class="mod" id="baslarken">
+      <div class="mod-head">
+        <span class="eyebrow">rag-from-scratch · Proje 1</span>
+        <h1>RAG Çalışma Rehberi</h1>
+      </div>
+      <p class="lede">Kendi projen üzerinden RAG'ı baştan sona öğrenmek için hazırlandı. Her modül, senin repondaki gerçek kodu ve gerçek ölçüm sonuçlarını kullanıyor.</p>
+      <h3>Her modülde ne var?</h3>
+      <ul class="keys">
+        <li><b>Özet ve benzetme:</b> Kavramı günlük dille anlatır.</li>
+        <li><b>Projende:</b> O kavramın repondaki karşılığı olan kod.</li>
+        <li><b>Akılda tut</b> ve <b>sık yapılan hata</b>.</li>
+        <li><b>Oyun alanı</b> (bazı modüllerde): Parametreleri değiştirip sonucu anında gör.</li>
+        <li><b>Quiz:</b> Her cevaptan sonra açıklama gelir.</li>
+        <li><b>Ellerini kirlet:</b> Projende yapacağın bir görev. Öğrenmenin asıl gerçekleştiği yer burası.</li>
+        <li><b>Mülakat sorusu:</b> Önce kendin cevapla, sonra örnek cevabı aç.</li>
+      </ul>
+      <p>Bir modülü bitirince en alttaki <b>"Modülü bitirdim"</b> butonuna bas. İlerlemen bu tarayıcıda saklanır.</p>
+      <h3>7 günlük plan</h3>
+      <div class="plan">
+        <div class="day"><span class="d">Gün 1</span><span class="t">RAG nedir + Yükleme</span><span class="s">Modül 1–2. Kendi PDF'ini ekleyip yükle.</span></div>
+        <div class="day"><span class="d">Gün 2</span><span class="t">Chunking</span><span class="s">Modül 3. <code>chunk_by_section</code>'ı silip baştan kendin yaz.</span></div>
+        <div class="day"><span class="d">Gün 3</span><span class="t">Embedding</span><span class="s">Modül 4. Vektör aramasının yanıldığı bir soru bul.</span></div>
+        <div class="day"><span class="d">Gün 4</span><span class="t">Arama</span><span class="s">Modül 5. <code>hybrid_ara</code>'yı kendin yaz, testlerden geçir.</span></div>
+        <div class="day"><span class="d">Gün 5</span><span class="t">Prompt ve kaynak</span><span class="s">Modül 6. Hileli soru sorununu prompt ile düzelt.</span></div>
+        <div class="day"><span class="d">Gün 6</span><span class="t">Ölçüm</span><span class="s">Modül 7. Bir deney yap, sonucu README'ye ekle.</span></div>
+        <div class="day"><span class="d">Gün 7</span><span class="t">Mühendislik + sınav</span><span class="s">Modül 8, final sınavı, projeyi 2 dakikada sesli anlat.</span></div>
+      </div>
+      <div class="analogy"><b>Altın kural:</b> Bir modülü "okudum" diye değil, "Ellerini kirlet" görevini yapıp mülakat sorusunu kendi cümlelerinle cevaplayabildiğinde bitmiş say.</div>
+    </section>
+
+    <!-- ============================================================ M1 -->
+    <section class="mod" id="m1">
+      <div class="mod-head"><span class="eyebrow">Modül 1</span><h2>RAG nedir, neden var?</h2></div>
+      <p>LLM'ler (Gemini, ChatGPT, Claude) eğitimde gördükleri metinleri bilir. Senin şirketinin belgelerini, ders notlarını ya da dün yazılmış bir dokümanı bilmezler. Bilmedikleri bir şey sorulunca da çoğu zaman "bilmiyorum" demez, en yakın bildikleri şeyle boşluğu doldururlar. Buna <mark>halüsinasyon</mark> denir.</p>
+      <p><b>RAG (Retrieval-Augmented Generation)</b> bu sorunu şöyle çözer: Önce soruyla ilgili belge parçalarını <b>bul</b> (Retrieval), onları prompt'a <b>ekle</b> (Augmentation), sonra modele bu parçalara bakarak cevabı <b>yazdır</b> (Generation).</p>
+      <div class="analogy"><b>Benzetme: Açık kitap sınavı.</b> Kapalı kitap sınavında öğrenci ezberinden yazar, bilmiyorsa uydurur. Açık kitap sınavında önce ilgili sayfayı bulur, sonra ona bakarak yazar ve "3. sayfada yazıyor" der.</div>
+      <div class="pipeline" aria-label="RAG hattı"><span>Yükle</span><i>→</i><span>Parçala</span><i>→</i><span>Embed</span><i>→</i><span>Index</span><i>→</i><span>Ara</span><i>→</i><span>LLM + kaynak</span></div>
+      <h3>Projende gördüğümüz</h3>
+      <div class="twocol">
+        <div class="panel"><span class="panel-label">RAG olmadan (Gemini)</span><p>"Mavikod Teknoloji... hakkında kamuya açık veri bulunmamaktadır. Türkiye'de ... 1–5 yıl arası çalışanlar için en az <b>14 gün</b>..."</p><p class="why">Dürüst davrandı ama İş Kanunu'nun 14 gününü verdi. Mavikod için yanlış.</p></div>
+        <div class="panel"><span class="panel-label">RAG ile</span><p>"1–5 yıl kıdem: <b>18 gün</b> [1] · 5–15 yıl: 24 gün [1] · 15+ yıl: 30 gün [1]"</p><p class="why">📎 [1] 02-izin-politikasi.md › Yıllık ücretli izin</p></div>
+      </div>
+      <h3>Akılda tut</h3>
+      <ul class="keys">
+        <li>RAG modelin bilgisini <b>değiştirmez</b>, sadece soruya cevap verirken ona doğru sayfaları önüne koyar.</li>
+        <li>Bilgi güncellenince modeli yeniden eğitmek gerekmez; dokümanı değiştirip index'i yeniden kurmak yeter. Fine-tuning'e göre en büyük avantajı bu.</li>
+        <li>RAG'ın iki yarısı ayrı ayrı başarısız olabilir: <b>retrieval</b> yanlış parçayı getirebilir, <b>generation</b> doğru parçayla da yanlış cevap yazabilir.</li>
+      </ul>
+      <div class="pitfall"><b>Sık yapılan hata:</b> "RAG kurdum, artık halüsinasyon yok" demek. Prompt kuralları ve ölçüm olmadan model, kaynaklarda olmayan bilgiyi yine ekleyebilir. Bunu Modül 7'de sadakat (faithfulness) metriğiyle ölçtük.</div>
+      <div class="panel" data-quiz="m1"><span class="panel-label">Quiz</span></div>
+      <div class="panel task"><span class="panel-label">Ellerini kirlet</span>
+        <ol>
+          <li><code>ders05_cevap.py</code> içindeki <code>soru</code> değişkenini kendi sorunla değiştir (ör. "Spor desteği ne kadar?") ve çalıştır.</li>
+          <li>RAG'sız ve RAG'lı cevabı karşılaştır. Hangisi uydurdu, hangisi kaynak gösterdi?</li>
+          <li>RAG'ı hiç bilmeyen bir arkadaşına 3 cümleyle anlatıyormuş gibi bir not yaz.</li>
+        </ol>
+      </div>
+      <details class="interview"><summary>Mülakat: "RAG ile fine-tuning arasındaki fark nedir, ne zaman hangisini seçersin?"</summary>
+        <p>Fine-tuning modelin ağırlıklarını değiştirir. <b>Davranış ve üslup</b> öğretmek için iyidir (ör. belirli bir formatta yazmak), ama sık değişen bilgiyi taşımak için pahalı ve yavaştır, üstelik kaynak gösteremez. RAG ise bilgiyi dışarıda tutar: doküman değişince index'i güncellemek yeter, her cevap kaynağıyla gelir, "bilmiyorum" demek kolaydır. Şirket dokümanları gibi <b>değişen, doğrulanması gereken bilgi</b> için RAG seçerim. Benim projemde 8 dokümanlık bir el kitabı vardı; RAG olmadan model İş Kanunu'nun 14 gününü verdi, RAG ile doğru cevap olan 18 günü kaynağıyla verdi.</p>
+      </details>
+      <div class="done-row"><button class="btn" data-done="m1">Modülü bitirdim</button></div>
+    </section>
+
+    <!-- ============================================================ M2 -->
+    <section class="mod" id="m2">
+      <div class="mod-head"><span class="eyebrow">Modül 2</span><h2>Yükleme ve metadata</h2></div>
+      <div class="pipeline"><span class="here">Yükle</span><i>→</i><span>Parçala</span><i>→</i><span>Embed</span><i>→</i><span>Index</span><i>→</i><span>Ara</span><i>→</i><span>LLM + kaynak</span></div>
+      <p>İlk adım, farklı formattaki dosyaları (Markdown, TXT, PDF) tek bir ortak yapıya çevirmek: <code>Document(text, metadata)</code>. Sistemin geri kalanı dosya formatını hiç bilmez, sadece <code>Document</code> görür.</p>
+      <div class="file">rag/loader.py</div>
+<pre><code><span class="k">@dataclass</span>
+class Document:
+    text: str
+    metadata: dict = field(default_factory=dict)
+
+def load_pdf(path):
+    docs = []
+    for page_no, page in enumerate(PdfReader(path).pages, start=1):
+        text = (page.extract_text() or "").strip()
+        if text:   <span class="c"># boş sayfaları atla, ama numaralar kaymasın</span>
+            docs.append(Document(text, {"source": path.name, "page": page_no}))
+    return docs
+
+LOADERS = {".md": load_markdown, ".txt": load_markdown, ".pdf": load_pdf}</code></pre>
+      <div class="analogy"><b>Benzetme:</b> Kütüphaneye gelen her kitabın sırtına bir etiket yapıştırmak: "hangi kitap, hangi sayfa". Etiketi şimdi yapıştırmazsan sayfalar karışınca hangisinin nereden geldiğini bilemezsin.</div>
+      <h3>Akılda tut</h3>
+      <ul class="keys">
+        <li><mark>Metadata, ileride kaynak göstermenin temelidir.</mark> Dosya adı ve sayfa numarası sadece yükleme anında bilinir.</li>
+        <li>PDF'te her sayfa ayrı bir <code>Document</code> olur ki "7. sayfada" diyebilelim.</li>
+        <li><code>LOADERS</code> sözlüğü sayesinde yeni bir format eklemek tek satır demek.</li>
+        <li>Veriyi iyi tanımak şart: Yanlış cevabı ancak doğrusunu biliyorsan yakalarsın. Kurgusal Mavikod verisini bu yüzden kullandık.</li>
+      </ul>
+      <div class="pitfall"><b>Sık yapılan hata:</b> Bütün PDF'i tek bir metin olarak okuyup sayfa bilgisini kaybetmek. Sonradan "bu bilgi hangi sayfada?" sorusuna cevap verilemez.</div>
+      <div class="panel" data-quiz="m2"><span class="panel-label">Quiz</span></div>
+      <div class="panel task"><span class="panel-label">Ellerini kirlet</span>
+        <ol>
+          <li>Elindeki herhangi bir PDF'i (ders notu, makale) <code>data/raw/</code> klasörüne kopyala.</li>
+          <li><code>.venv\Scripts\python.exe ders01_yukle.py</code> çalıştır. PDF'in her sayfası ayrı satır olarak görünüyor mu?</li>
+          <li><code>sor.py</code> ile o PDF'ten bir soru sor. Kaynak satırında sayfa numarası çıkıyor mu?</li>
+          <li>Denemeden sonra PDF'i <code>data/raw/</code>'dan çıkar ki test seti ölçümleri değişmesin.</li>
+        </ol>
+      </div>
+      <details class="interview"><summary>Mülakat: "Taranmış (resim) PDF'ler gelirse sisteminde ne olur?"</summary>
+        <p><code>pypdf</code> sadece PDF'in içindeki metin katmanını okur. Taranmış bir sayfada metin katmanı yoktur, <code>extract_text()</code> boş döner ve benim yükleyicim o sayfayı sessizce atlar. Yani sistem çökmez, ama o bilgiyi hiç görmez. Çözüm, yükleme aşamasına OCR eklemek (ör. Tesseract) ve kaç sayfanın boş geldiğini loglamak; sessizce atlanan sayfalar ölçülmezse fark edilmez.</p>
+      </details>
+      <div class="done-row"><button class="btn" data-done="m2">Modülü bitirdim</button></div>
+    </section>
+
+    <!-- ============================================================ M3 -->
+    <section class="mod" id="m3">
+      <div class="mod-head"><span class="eyebrow">Modül 3</span><h2>Chunking (parçalama)</h2></div>
+      <div class="pipeline"><span>Yükle</span><i>→</i><span class="here">Parçala</span><i>→</i><span>Embed</span><i>→</i><span>Index</span><i>→</i><span>Ara</span><i>→</i><span>LLM + kaynak</span></div>
+      <p>Uzun dokümanları küçük parçalara böleriz. Üç sebebi var: <b>arama isabeti</b> (küçük parçanın anlamı nettir), <b>maliyet</b> (LLM'e sadece ilgili 3–5 parça gider) ve <b>kesin kaynak</b> ("Yan Haklar › Yemek kartı").</p>
+      <div class="twocol">
+        <div class="panel"><span class="panel-label">Sabit boyut (chunk_fixed)</span><p>Her N karakterde kes, ardışık parçalar <code>overlap</code> kadar örtüşsün. Basit, her metinde çalışır. Ama kelimeyi, cümleyi ve konuyu ortadan bölebilir.</p></div>
+        <div class="panel"><span class="panel-label">Yapıya göre (chunk_by_section)</span><p><code>##</code> başlıklarından böl, uzun bölümü paragraflardan böl. Parçalar anlamlı bütünler olur ve bölüm adı kaynağa eklenir. Belgenin düzgün başlıkları olmasına dayanır.</p></div>
+      </div>
+      <div class="file">rag/chunker.py · chunk_fixed'in kalbi</div>
+<pre><code>step = size - overlap                      <span class="c"># 400 - 100 = 300 karakter ilerle</span>
+for i, start in enumerate(range(0, len(text), step)):
+    end = min(start + size, len(text))
+    chunks.append(Document(text[start:end], {**doc.metadata, "chunk_index": i}))
+    if end == len(text):                     <span class="c"># metnin sonuna ulaştık, dur</span>
+        break</code></pre>
+      <div class="panel" id="chunk-play"><span class="panel-label">Oyun alanı: iki yöntemi kendi gözünle karşılaştır</span>
+        <div class="controls">
+          <label for="cp-method">Yöntem<select id="cp-method"><option value="fixed">Sabit boyut</option><option value="section">Başlığa göre</option></select></label>
+          <label for="cp-size">size / max_chars<input id="cp-size" type="number" value="260" min="40" max="2000" step="10"></label>
+          <label for="cp-overlap">overlap (sadece sabit)<input id="cp-overlap" type="number" value="40" min="0" max="500" step="10"></label>
+        </div>
+        <textarea id="cp-text" aria-label="Parçalanacak metin"></textarea>
+        <div class="stat" id="cp-stat"></div>
+        <div class="chunks" id="cp-out"></div>
+      </div>
+      <h3>Akılda tut</h3>
+      <ul class="keys">
+        <li><b>Overlap:</b> Sınırda kalan bir cümle en az bir parçada bütün olarak bulunsun diye.</li>
+        <li>Metadata <b>kopyalanmalı</b>: <code>{**doc.metadata, ...}</code>. Kopyalamazsan bütün parçalar aynı sözlüğü paylaşır.</li>
+        <li>"Döngüden sonra son grubu kaydet" kalıbı: Son bölüm/grup hiçbir zaman bir sonraki başlıkla tetiklenmez.</li>
+        <li><mark>Projendeki sonuç:</mark> Başlığa göre yöntem genel doğrulukta önde (92% / 90%), ama birleştirme sorularında sabit yöntem 15 puan daha iyi (86% / 71%). Hiçbir yöntem her durumda en iyisi değil.</li>
+      </ul>
+      <div class="pitfall"><b>Sık yapılan hata:</b> "Her 1000 karakterde böldüm, birkaç soru sordum, iyi görünüyor." Rehberin YANLIŞ örneği bu. Parça boyutu ölçülmeden seçilmemeli.</div>
+      <div class="panel" data-quiz="m3"><span class="panel-label">Quiz</span></div>
+      <div class="panel task"><span class="panel-label">Ellerini kirlet</span>
+        <ol>
+          <li><code>rag/chunker.py</code> içinde <code>_bolumlere_ayir</code> ve <code>_uzunsa_bol</code> fonksiyonlarının gövdesini sil ve <b>bakmadan</b> yeniden yaz.</li>
+          <li><code>.venv\Scripts\python.exe -m pytest tests/test_chunker.py -v</code> ile 10 testin 10'unu geçir.</li>
+          <li>Deney: <code>ders06_testset.py</code>'de <code>chunk_by_section(d)</code> yerine <code>chunk_by_section(d, max_chars=300)</code> yaz. Recall nasıl değişti? Neden?</li>
+        </ol>
+      </div>
+      <details class="interview"><summary>Mülakat: "Chunk boyutunu nasıl seçersin?"</summary>
+        <p>Tahminle değil, ölçerek. Önce belgenin yapısına bakarım: başlıkları ve paragrafları varsa yapıya göre bölerim, çünkü parçalar anlamlı bütünler olur. Sonra 2–3 farklı boyutu aynı test setinde recall ve cevap doğruluğu ile karşılaştırırım. Çok küçük parçalar bağlamı kaybeder ("450 TL" bulunur ama neyin 450 TL olduğu başka parçada kalır), çok büyük parçalar embedding'i bulanıklaştırır ve pahalıdır. Benim projemde başlığa göre bölme genel olarak kazandı, ama sabit bölmenin birleştirme sorularında daha iyi olduğunu da ölçerek gördüm.</p>
+      </details>
+      <div class="done-row"><button class="btn" data-done="m3">Modülü bitirdim</button></div>
+    </section>
+
+    <!-- ============================================================ M4 -->
+    <section class="mod" id="m4">
+      <div class="mod-head"><span class="eyebrow">Modül 4</span><h2>Embedding</h2></div>
+      <div class="pipeline"><span>Yükle</span><i>→</i><span>Parçala</span><i>→</i><span class="here">Embed</span><i>→</i><span>Index</span><i>→</i><span>Ara</span><i>→</i><span>LLM + kaynak</span></div>
+      <p>Embedding, bir metni sabit uzunlukta bir sayı listesine (vektöre) çevirir. Bizim modelimiz (<code>paraphrase-multilingual-MiniLM-L12-v2</code>) her metni <b>384 sayıya</b> çeviriyor. Tek tek sayıların anlamı yoktur; önemli olan iki vektörün birbirine ne kadar <b>yakın</b> olduğudur.</p>
+      <div class="analogy"><b>Benzetme: Harita koordinatları.</b> İzmir ve Manisa'nın enlem-boylamı birbirine yakındır, İzmir ve Kars'ınki uzaktır. Embedding 2 yerine 384 boyutlu bir "anlam haritası". "Yemek kartı" ile "öğle yemeği" yakın noktalara düşer.</div>
+      <div class="file">rag/embedder.py</div>
+<pre><code>def embed(metinler):
+    <span class="c"># normalize=True → her vektörün uzunluğu 1 olur</span>
+    return _get_model().encode(metinler, normalize_embeddings=True)
+
+def benzerlik(a, b):
+    <span class="c"># uzunluklar 1 olduğu için kosinüs benzerliği = iç çarpım</span>
+    return float(np.dot(a, b))</code></pre>
+      <div class="panel" id="vec-play"><span class="panel-label">Oyun alanı: kosinüs benzerliği (2 boyutlu)</span>
+        <p class="why">Gerçek vektörler 384 boyutlu ama fikir aynı: İki ok aynı yöne bakıyorsa benzerlik 1, dik açıdaysa 0, zıt yöndeyse −1. Okların uzunluğu değil, <b>yönü</b> önemli.</p>
+        <div class="twocol">
+          <svg class="vec-svg" viewBox="0 0 240 240" role="img" aria-label="İki vektör ve aralarındaki açı">
+            <line x1="20" y1="120" x2="220" y2="120" stroke="var(--line)" stroke-width="1"></line>
+            <line x1="120" y1="20" x2="120" y2="220" stroke="var(--line)" stroke-width="1"></line>
+            <circle cx="120" cy="120" r="90" fill="none" stroke="var(--line)" stroke-dasharray="3 4"></circle>
+            <line id="va" x1="120" y1="120" x2="210" y2="120" stroke="var(--accent)" stroke-width="3.5" stroke-linecap="round"></line>
+            <line id="vb" x1="120" y1="120" x2="120" y2="30" stroke="var(--bad)" stroke-width="3.5" stroke-linecap="round"></line>
+            <text id="la" x="200" y="112">soru</text>
+            <text id="lb" x="126" y="40">parça</text>
+          </svg>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <label for="ang-a" class="stat">Soru vektörünün açısı: <span id="ang-a-v">20°</span><input id="ang-a" type="range" min="0" max="360" value="20"></label>
+            <label for="ang-b" class="stat">Parça vektörünün açısı: <span id="ang-b-v">60°</span><input id="ang-b" type="range" min="0" max="360" value="60"></label>
+            <div><span class="panel-label">Kosinüs benzerliği</span><div class="big" id="cos-v">0.77</div><div class="stat" id="cos-t"></div></div>
+          </div>
+        </div>
+      </div>
+      <h3>Projende gördüğümüz</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Karşılaştırma</th><th>Benzerlik</th><th>Ders</th></tr></thead>
+        <tbody>
+          <tr><td>"Yemek kartına günde ne kadar para yükleniyor?" ↔ Yemek kartı parçası</td><td class="num">0.63</td><td>Ortak kelime yokken bile anlamı buldu</td></tr>
+          <tr><td>Aynı soru ↔ diş sigortası + yemek kartı karışık parçası</td><td class="num">0.47</td><td>Karışık parça bulanıklaşır (Modül 3'ün kanıtı)</td></tr>
+          <tr><td>"parola" ↔ "tatil" / "parola" ↔ "şifre"</td><td class="num">0.58 / 0.51</td><td>Tek kelimelerde küçük model şaşırabilir</td></tr>
+        </tbody>
+      </table></div>
+      <h3>Akılda tut</h3>
+      <ul class="keys">
+        <li>Soru ve parçalar <mark>aynı modelle</mark> embed edilmeli. Farklı modellerin "haritaları" farklıdır.</li>
+        <li>Embedding modeli cevap yazmaz, sadece "anlam adresi" üretir. Küçük ve yerel olabilir; bizimki ücretsiz.</li>
+        <li>Embedding mükemmel değildir; kısa ve bağlamsız metinlerde yanılabilir. Bu yüzden Modül 5'te kelime aramasıyla birleştirdik.</li>
+      </ul>
+      <div class="pitfall"><b>Sık yapılan hata:</b> Embedding modelini değiştirip eski index'i kullanmaya devam etmek. Sonuçlar sessizce bozulur, hata mesajı da çıkmaz.</div>
+      <div class="panel" data-quiz="m4"><span class="panel-label">Quiz</span></div>
+      <div class="panel task"><span class="panel-label">Ellerini kirlet</span>
+        <ol>
+          <li><code>ders03_embedding.py</code> içindeki <code>kelimeler</code> listesine kendi kelime çiftlerini ekle ("maaş", "ücret", "kedi" gibi). Tahminin tuttu mu?</li>
+          <li><code>soru</code> değişkenini değiştirerek vektör aramasının <b>yanlış</b> parçayı birinci getirdiği bir soru bul.</li>
+          <li>Neden yanıldığını tahmin et: Soru ile doğru parça farklı kelimeler mi kullanıyor, yoksa yanlış parça daha mı genel?</li>
+        </ol>
+      </div>
+      <details class="interview"><summary>Mülakat: "Kosinüs benzerliği nedir, neden öklid mesafesi değil?"</summary>
+        <p>Kosinüs benzerliği iki vektör arasındaki açının kosinüsüdür; vektörlerin uzunluğuna değil yönüne bakar. Metin embedding'lerinde anlam büyük ölçüde yönde saklıdır, uzunluk ise metnin uzunluğu gibi alakasız şeylerden etkilenebilir. Vektörleri baştan normalize edersek (uzunluk 1) kosinüs benzerliği basit bir iç çarpıma iner, hem hızlı hem de öklid mesafesiyle aynı sıralamayı verir. Benim projemde <code>normalize_embeddings=True</code> kullanıp <code>np.dot</code> ile hesapladım.</p>
+      </details>
+      <div class="done-row"><button class="btn" data-done="m4">Modülü bitirdim</button></div>
+    </section>
+
+    <!-- ============================================================ M5 -->
+    <section class="mod" id="m5">
+      <div class="mod-head"><span class="eyebrow">Modül 5</span><h2>Index ve hybrid arama</h2></div>
+      <div class="pipeline"><span>Yükle</span><i>→</i><span>Parçala</span><i>→</i><span>Embed</span><i>→</i><span class="here">Index</span><i>→</i><span class="here">Ara</span><i>→</i><span>LLM + kaynak</span></div>
+      <p><b>Vector DB (Chroma):</b> Parçaların vektörleri bir kez hesaplanıp diske yazılır. Her soruda sadece sorunun vektörü hesaplanır ve en yakın parçalar diskten bulunur.</p>
+      <p><b>BM25 (kelime araması):</b> Soru ile parçada ortak geçen kelimelere puan verir. Nadir kelimeler daha değerlidir: "MFA" tek bir parçada geçer ve çok puan getirir, "için" her yerde geçer ve neredeyse hiç puan getirmez. Türkçe eklerle başa çıkmak için her kelimenin <b>ilk 5 harfini</b> kullandık: "kartı", "kartına", "kartından" → "kartı".</p>
+      <p><b>RRF (Reciprocal Rank Fusion):</b> İki listeyi skorlarına göre değil <b>sıralarına</b> göre birleştirir. Her parça her listede <code>1 / (60 + sıra)</code> puan toplar.</p>
+      <div class="file">rag/search.py · hybrid_ara</div>
+<pre><code>for liste in (vektor_ara(soru, k=20), kelime_index.ara(soru, k=20)):
+    for sira, (_, p) in enumerate(liste, start=1):
+        puan[_kimlik(p)] = puan.get(_kimlik(p), 0) + 1 / (60 + sira)
+en_iyiler = sorted(puan, key=puan.get, reverse=True)[:k]</code></pre>
+      <div class="panel" id="rrf-play"><span class="panel-label">Oyun alanı: RRF hesaplayıcı</span>
+        <p class="why">Her satıra bir bölüm adı yaz, ilk satır 1. sıra olsun. Örnek sıralamalar "Evden çalışırken internet parası veriliyor mu?" sorusuna göre uydurulmuştur; doğru cevap <b>Ev ofis desteği</b>.</p>
+        <div class="twocol">
+          <label for="rrf-a" class="stat">Vektör araması sırası<textarea id="rrf-a"></textarea></label>
+          <label for="rrf-b" class="stat">Kelime araması sırası<textarea id="rrf-b"></textarea></label>
+        </div>
+        <div class="controls"><label for="rrf-k">RRF sabiti (k)<input id="rrf-k" type="number" value="60" min="0" max="500"></label></div>
+        <div class="table-wrap"><table><thead><tr><th>Sıra</th><th>Bölüm</th><th>Vektör sırası</th><th>Kelime sırası</th><th>RRF puanı</th></tr></thead><tbody id="rrf-out"></tbody></table></div>
+        <p class="why">Deney: k'yı 0 yap. Birinci sıraların ağırlığı çok artar. k'yı 500 yap. Sıralar arasındaki fark neredeyse kaybolur ve "iki listede de geçen" parçalar öne çıkar.</p>
+      </div>
+      <h3>Projendeki ölçüm (recall@5, 34 soru)</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Yöntem</th><th>Basit</th><th>Birleştirme</th><th>Hileli</th><th>Toplam</th></tr></thead>
+        <tbody>
+          <tr><td>Vektör</td><td class="num">91%</td><td class="num">86%</td><td class="num">100%</td><td class="num">91%</td></tr>
+          <tr class="top"><td>Kelime (BM25)</td><td class="num">100%</td><td class="num">93%</td><td class="num">100%</td><td class="num">99%</td></tr>
+          <tr><td>Hybrid (RRF)</td><td class="num">100%</td><td class="num">86%</td><td class="num">100%</td><td class="num">97%</td></tr>
+        </tbody>
+      </table></div>
+      <h3>Akılda tut</h3>
+      <ul class="keys">
+        <li>Vektör araması <b>eş anlamlıları</b> ("para" ↔ "450 TL"), kelime araması <b>özel terimleri</b> ("MFA", "M4") yakalar.</li>
+        <li>Skorları toplamayız, çünkü ölçekler farklı: kosinüs 0–1 arası, BM25 0–20 arası.</li>
+        <li><mark>Hybrid otomatik olarak en iyisi değil.</mark> Bu veride BM25 tek başına bir tık önde. Bunu ancak ölçtüğümüz için biliyoruz.</li>
+      </ul>
+      <div class="pitfall"><b>Sık yapılan hata:</b> 6 soruyla karar vermek. Ders 4'te vektör araması 6 sorunun 4'ünde kaçırıyor gibi görünüyordu; 34 soruda recall'ı %91 çıktı.</div>
+      <div class="panel" data-quiz="m5"><span class="panel-label">Quiz</span></div>
+      <div class="panel task"><span class="panel-label">Ellerini kirlet</span>
+        <ol>
+          <li><code>rag/search.py</code> içinde <code>hybrid_ara</code>'nın gövdesini sil ve kendin yaz.</li>
+          <li><code>.venv\Scripts\python.exe -m pytest tests/test_search.py -v</code> ile testleri geçir.</li>
+          <li>Deney: <code>kelimelere_ayir</code> içinde <code>kelime[:5]</code> yerine <code>kelime</code> yaz (kök bulmayı kapat) ve <code>ders06_testset.py</code> çalıştır. Kelime aramasının recall'ı ne oldu?</li>
+        </ol>
+      </div>
+      <details class="interview"><summary>Mülakat: "Neden hybrid search kullandın, gerçekten işe yaradı mı?"</summary>
+        <p>Vektör araması anlamı yakalıyor ama "MFA", "M4" gibi kısa özel terimlerde zorlanıyor; BM25 bunun tam tersi. RRF ile ikisini sıralarına göre birleştirdim. Dürüst sonuç şu: 34 soruluk test setimde BM25 tek başına %99, hybrid %97, vektör %91 recall aldı. Yani bu veride hybrid, BM25'i geçmedi; ama vektöre göre belirgin şekilde iyi ve farklı türde sorulara karşı daha dayanıklı. Gerçek ve daha dağınık bir veride sonuç değişebilir; o yüzden seçimi her veride yeniden ölçerim.</p>
+      </details>
+      <div class="done-row"><button class="btn" data-done="m5">Modülü bitirdim</button></div>
+    </section>
+
+    <!-- ============================================================ M6 -->
+    <section class="mod" id="m6">
+      <div class="mod-head"><span class="eyebrow">Modül 6</span><h2>Prompt ve kaynak gösterme</h2></div>
+      <div class="pipeline"><span>Yükle</span><i>→</i><span>Parçala</span><i>→</i><span>Embed</span><i>→</i><span>Index</span><i>→</i><span>Ara</span><i>→</i><span class="here">LLM + kaynak</span></div>
+      <p>RAG'ın üç harfi koddaki üç satırdır. Kaynak göstermenin sırrı da basit: Parçaları LLM'e <b>numaralı</b> veririz, LLM cevapta <code>[1]</code> yazınca regex ile o numarayı yakalar ve parçanın metadata'sından dosya ile bölümü buluruz.</p>
+      <div class="file">rag/pipeline.py · RAG.sor</div>
+<pre><code>parcalar = [p for _, p in hybrid_ara(soru, self.kelime_index, k=k)]      <span class="c"># R: bul</span>
+prompt = PROMPT_SABLONU.format(kaynaklar=kaynaklari_yaz(parcalar), soru=soru)  <span class="c"># A: ekle</span>
+metin = generate(prompt).strip()                                          <span class="c"># G: yazdır</span>
+kullanilan = sorted({int(n) for n in re.findall(r"\[(\d+)\]", metin)
+                     if 1 &lt;= int(n) &lt;= len(parcalar)})                     <span class="c"># [1][3] → {1, 3}</span></code></pre>
+      <h3>Prompt'taki 4 kural</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Kural</th><th>Neden?</th></tr></thead>
+        <tbody>
+          <tr><td>Sadece KAYNAKLAR'ı kullan</td><td>Modelin ezber bilgiyle cevap vermesini engeller (14 gün örneği)</td></tr>
+          <tr><td>Her bilgiye [n] ile atıf yap</td><td>Kullanıcı kontrol edebilir, biz de hangi parçanın kullanıldığını görürüz</td></tr>
+          <tr><td>Yoksa tam olarak "Bu bilgi dokümanlarda yok." yaz</td><td>Sabit cümle kodla yakalanır ve ölçülebilir</td></tr>
+          <tr><td>Kısa, net, Türkçe</td><td>Tutarlı ve kontrol edilebilir çıktı</td></tr>
+        </tbody>
+      </table></div>
+      <h3>Akılda tut</h3>
+      <ul class="keys">
+        <li>Hata analizi: Cevap yanlışsa <code>cevap.parcalar</code>'a bak. <b>Doğru parça yoksa</b> hata retrieval'da, <b>varsa</b> LLM'de veya prompt'ta.</li>
+        <li>Projende ikisinin de örneği var: Birleştirme soruları (#24, #27) retrieval hatası, hileli soru (#31) prompt hatası.</li>
+        <li>Daha çok parça her zaman daha iyi değildir: pahalıdır ve model alakasız metinde kaybolabilir.</li>
+      </ul>
+      <div class="pitfall"><b>Sık yapılan hata:</b> "Emin değilsen bilmiyorum de" kuralını fazla geniş yazmak. Model "Yıllık izin 25 gün, değil mi?" sorusunda yanlış varsayımı düzeltmek yerine "Bu bilgi dokümanlarda yok." dedi. Aşırı temkinlilik de bir hata türüdür.</div>
+      <div class="panel" data-quiz="m6"><span class="panel-label">Quiz</span></div>
+      <div class="panel task"><span class="panel-label">Ellerini kirlet: hileli soru sorununu düzelt</span>
+        <ol>
+          <li><code>rag/pipeline.py</code>'deki <code>PROMPT_SABLONU</code>'na yeni bir kural ekle: "Soru yanlış bir varsayım içeriyorsa (ör. yanlış bir sayı), kaynaklardaki doğru bilgiyle düzelt."</li>
+          <li><code>.venv\Scripts\python.exe ders07_olcum.py --hizli</code> çalıştır. #31 artık doğru mu?</li>
+          <li>Diğer sorular bozuldu mu? Özellikle "yok" sorularında hâlâ "bilgi yok" diyor mu? Bir düzeltme başka bir şeyi bozabilir; bu yüzden hep tüm seti ölçeriz.</li>
+        </ol>
+      </div>
+      <details class="interview"><summary>Mülakat: "Modelin kaynak uydurmasını (sahte citation) nasıl engellersin?"</summary>
+        <p>Birincisi, kaynakları numaralı veririm ve sadece o numaralarla atıf yapmasını isterim. Kodda, aralık dışındaki numaraları (ör. 5 parça verdiysem [7]'yi) atarım; bunun için ayrı bir testim var. İkincisi, atıf yapılan parçanın cevaptaki bilgiyi gerçekten içerip içermediğini ölçerim; ben bunu hakem LLM ile sadakat (faithfulness) metriği olarak ölçtüm ve 40 soruda %100 çıktı. Üçüncüsü, cevabı olmayan sorular için sabit bir "bilgi yok" cümlesi isteyip bunu da ayrıca ölçerim.</p>
+      </details>
+      <div class="done-row"><button class="btn" data-done="m6">Modülü bitirdim</button></div>
+    </section>
+
+    <!-- ============================================================ M7 -->
+    <section class="mod" id="m7">
+      <div class="mod-head"><span class="eyebrow">Modül 7</span><h2>Ölçüm</h2></div>
+      <p>Projenin en önemli kısmı. Rehberin özü tek cümle: <mark>Bir şeyi değiştir, aynı test setinde ölç, sayıyla göster.</mark></p>
+      <h3>Test seti: sistemin sınav kâğıdı</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Tür</th><th>Sayı</th><th>Örnek</th><th>Neyi sınar?</th></tr></thead>
+        <tbody>
+          <tr><td>basit</td><td class="num">23</td><td>Şifrem en az kaç karakter olmalı?</td><td>Tek bölümü bulabiliyor mu?</td></tr>
+          <tr><td>birleştirme</td><td class="num">7</td><td>Evlenince kaç gün izin, hediye var mı?</td><td>İki ayrı bölümü bulabiliyor mu?</td></tr>
+          <tr><td>hileli</td><td class="num">4</td><td>Yıllık izin 25 gün, değil mi?</td><td>Yanlış varsayımı düzeltiyor mu?</td></tr>
+          <tr><td>yok</td><td class="num">6</td><td>Ankara ofisinde otopark var mı?</td><td>Uydurmadan "bilmiyorum" diyor mu?</td></tr>
+        </tbody>
+      </table></div>
+      <h3>Metrikler</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Metrik</th><th>Ne ölçer?</th><th>Nasıl?</th></tr></thead>
+        <tbody>
+          <tr><td>Recall@5</td><td>Doğru bölüm ilk 5 sonuçta mı?</td><td>LLM'siz, ücretsiz</td></tr>
+          <tr><td>Doğruluk (hakem)</td><td>Cevap altın cevapla aynı bilgiyi veriyor mu?</td><td>LLM-as-a-judge</td></tr>
+          <tr><td>Doğruluk (anahtar)</td><td>"18" gibi ifadeler cevapta geçiyor mu?</td><td>Metin kontrolü</td></tr>
+          <tr><td>Sadakat (faithfulness)</td><td>Cevaptaki her bilgi kaynaklarda var mı?</td><td>LLM-as-a-judge</td></tr>
+          <tr><td>Kaynak gösterme</td><td>Cevapta [n] atfı var mı?</td><td>Metin kontrolü</td></tr>
+        </tbody>
+      </table></div>
+      <h3>Projendeki deney (40 soru)</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Metrik</th><th>Başlığa göre</th><th>Sabit (500/50)</th></tr></thead>
+        <tbody>
+          <tr class="top"><td>Doğruluk (hakem)</td><td class="num">92%</td><td class="num">90%</td></tr>
+          <tr><td>Doğruluk (anahtar)</td><td class="num">95%</td><td class="num">88%</td></tr>
+          <tr><td>Sadakat</td><td class="num">100%</td><td class="num">100%</td></tr>
+          <tr><td>Kaynak gösterme</td><td class="num">97%</td><td class="num">88%</td></tr>
+          <tr><td>Birleştirme soruları</td><td class="num">71%</td><td class="num">86%</td></tr>
+          <tr><td>Hileli sorular</td><td class="num">75%</td><td class="num">50%</td></tr>
+        </tbody>
+      </table></div>
+      <h3>Akılda tut</h3>
+      <ul class="keys">
+        <li><b>Test setinin kendisini de test et.</b> Doğrulayıcı, altın cevapta yaptığım bir hatayı ("1 hafta") yakaladı.</li>
+        <li>Retrieval ve generation <b>ayrı ayrı</b> ölçülür. Recall %100 olsa bile cevap yanlış olabilir.</li>
+        <li>Hakem de bir LLM'dir ve yanılabilir; cevabı yazan modelle aynıysa onu kayırabilir. Yanında kural tabanlı bir kontrol tutmak iyi bir alışkanlık.</li>
+        <li>40 soruda %2'lik fark tek bir soru demek. LLM cevapları her çalıştırmada birebir aynı olmadığı için skorlar birkaç puan oynayabilir.</li>
+      </ul>
+      <div class="pitfall"><b>Sık yapılan hata:</b> "Router kurdum, artık çok daha ucuz" ya da "RAG'ım çok iyi" demek. Sayı yoksa iddia da yoktur.</div>
+      <div class="panel" data-quiz="m7"><span class="panel-label">Quiz</span></div>
+      <div class="panel task"><span class="panel-label">Ellerini kirlet: kendi deneyini yap</span>
+        <ol>
+          <li><code>data/testset.jsonl</code>'e 5 yeni soru ekle (en az bir "birlestirme" ve bir "yok"). <code>ders06_testset.py</code> doğrulayıcısından geçir.</li>
+          <li>Birleştirme sorunu için hipotez kur: "k=5 yerine k=8 parça verirsem ikinci bölüm de gelir."</li>
+          <li><code>rag/pipeline.py</code>'de <code>sor</code> fonksiyonunun <code>k</code> varsayılanını 8 yap ve <code>ders07_olcum.py</code> çalıştır.</li>
+          <li>Hipotezin doğrulandı mı? Bedeli ne oldu (diğer metrikler)? Sonucu README'deki tabloya ekle ve commit'le.</li>
+        </ol>
+      </div>
+      <details class="interview"><summary>Mülakat: "RAG sistemini nasıl değerlendirdin?"</summary>
+        <p>40 soruluk, 4 türden oluşan bir test seti hazırladım: basit, iki bölümü birleştirmeyi gerektiren, yanlış varsayım içeren ve cevabı dokümanlarda olmayan sorular. Retrieval'ı LLM'siz recall@5 ile, cevabı ise LLM-as-a-judge ile doğruluk ve sadakat açısından ölçtüm; hakeme güvenmemek için yanında anahtar ifade kontrolü de tuttum. Sonra chunking yöntemini değiştirip aynı sette karşılaştırdım: başlığa göre bölme %92, sabit bölme %90 doğruluk aldı, ama birleştirme sorularında sabit bölme 15 puan öndeydi. Hataları da kaynağına göre ayırdım: birleştirme hataları retrieval'dan, hileli soru hatası prompt'tan geliyordu.</p>
+      </details>
+      <div class="done-row"><button class="btn" data-done="m7">Modülü bitirdim</button></div>
+    </section>
+
+    <!-- ============================================================ M8 -->
+    <section class="mod" id="m8">
+      <div class="mod-head"><span class="eyebrow">Modül 8</span><h2>Mühendislik alışkanlıkları</h2></div>
+      <p>Demo'da çalışan kodla başkasının bilgisayarında da çalışan kod arasındaki fark bu modülde. Bunlar mülakatlarda "production tecrüben var mı?" sorusunun cevabıdır.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Alışkanlık</th><th>Projende</th><th>Neden?</th></tr></thead>
+        <tbody>
+          <tr><td>Katmanlara ayırma</td><td><code>llm.py</code> tek kapı</td><td>Gemini → Claude geçişi tek dosya</td></tr>
+          <tr><td>Gizli bilgiyi ayırma</td><td><code>.env</code> + <code>.env.example</code> + <code>.gitignore</code></td><td>Anahtar GitHub'a gitmez, şablon gider</td></tr>
+          <tr><td>Retry + exponential backoff</td><td>429/503'te 2, 4, 8, 16, 32 sn bekle</td><td>Geçici hata programı çökertmesin</td></tr>
+          <tr><td>Kalıcı hatada hemen vazgeç</td><td>400 gelirse tekrar deneme</td><td>Düzelmeyecek hatada zaman kaybetme</td></tr>
+          <tr><td>Ayarları koda gömmeme</td><td><code>GEMINI_MODEL</code> .env'de</td><td>Model emekliye ayrıldığında tek satır</td></tr>
+          <tr><td>Tembel başlatma (lazy init)</td><td><code>_get_client()</code></td><td>Anahtarı olmayan biri de testleri çalıştırabilsin</td></tr>
+          <tr><td>LLM'i taklit eden testler</td><td>53 test, ~35 sn, API'siz</td><td>Hızlı, ücretsiz, her seferinde aynı sonuç</td></tr>
+          <tr><td>Tekrarlanabilirlik</td><td>Sabit paket sürümleri, temiz kurulum testi</td><td>Herkes aynı sonucu alsın</td></tr>
+        </tbody>
+      </table></div>
+      <div class="file">rag/llm.py · retry</div>
+<pre><code>for i in range(deneme):
+    try:
+        return _get_client().models.generate_content(model=MODEL, contents=prompt).text
+    except (errors.ServerError, errors.ClientError) as hata:
+        gecici = getattr(hata, "code", None) in (429, 500, 503)
+        if not gecici or i == deneme - 1:
+            raise                      <span class="c"># kalıcı hata ya da son deneme</span>
+        time.sleep(2 ** (i + 1))       <span class="c"># 2, 4, 8, 16, 32 saniye</span></code></pre>
+      <div class="pitfall"><b>Sık yapılan hata:</b> <code>.env.example</code>'ı silip <code>.env</code> yapmak (yeniden adlandırmak). Şablon kaybolur ve repoyu indiren kişi hangi ayarı yapacağını bilemez. Doğrusu kopyalamak.</div>
+      <div class="panel" data-quiz="m8"><span class="panel-label">Quiz</span></div>
+      <div class="panel task"><span class="panel-label">Ellerini kirlet</span>
+        <ol>
+          <li><code>tests/test_llm.py</code>'yi oku. <code>SahteIstemci</code> gerçek Gemini'yi nasıl taklit ediyor?</li>
+          <li>Kendin bir test yaz: <code>generate()</code> önce 500 hatası, sonra başarılı cevap alırsa 1 kez beklemeli. Testi çalıştır.</li>
+          <li>Bir değişiklik yap, <code>git add</code>, <code>git commit</code>, <code>git push</code> ile GitHub'a gönder.</li>
+        </ol>
+      </div>
+      <details class="interview"><summary>Mülakat: "LLM çağıran kodu nasıl test edersin?"</summary>
+        <p>Gerçek API'yi testlerde çağırmam, çünkü yavaş, ücretli ve her seferinde farklı cevap verir. LLM'e giden tek bir kapı (<code>generate</code>) tasarladığım için testlerde o kapıyı taklit edebiliyorum (pytest'in <code>monkeypatch</code>'i ile). Böylece prompt'a doğru kaynakların gittiğini, atıfların doğru ayıklandığını, retry'ın doğru sürelerle beklediğini ve kalıcı hatada vazgeçtiğini deterministik olarak test ediyorum. Modelin cevap kalitesini ise birim testle değil, test seti üzerinde ayrı bir değerlendirme ile ölçüyorum. İkisi farklı sorulara cevap veriyor.</p>
+      </details>
+      <div class="done-row"><button class="btn" data-done="m8">Modülü bitirdim</button></div>
+    </section>
+
+    <!-- ============================================================ SINAV -->
+    <section class="mod" id="sinav">
+      <div class="mod-head"><span class="eyebrow">Final</span><h2>Final sınavı</h2></div>
+      <p>12 soru, bütün modüllerden. 10 ve üstü yaptıysan Proje 2'ye hazırsın. Yanlış yaptığın her soru hangi modüle dönmen gerektiğini söyleyecek.</p>
+      <div class="panel" data-quiz="final"><span class="panel-label">Sınav</span></div>
+      <div class="panel" id="final-result" hidden><span class="panel-label">Sonuç</span><div class="score" id="final-score"></div><p id="final-advice"></p><div><button class="btn" id="final-reset">Sınavı yeniden başlat</button></div></div>
+    </section>
+
+    <!-- ============================================================ SÖZLÜK -->
+    <section class="mod" id="sozluk">
+      <div class="mod-head"><span class="eyebrow">Başvuru</span><h2>Sözlük</h2></div>
+      <dl class="gloss">
+        <dt>LLM</dt><dd>Büyük dil modeli. Gemini, ChatGPT, Claude.</dd>
+        <dt>Halüsinasyon</dt><dd>Modelin bilmediği bir şeyi emin bir şekilde uydurması.</dd>
+        <dt>RAG</dt><dd>Retrieval-Augmented Generation: bul, prompt'a ekle, cevap yazdır.</dd>
+        <dt>Document</dt><dd>Projede metin + metadata'dan oluşan temel veri yapısı.</dd>
+        <dt>Metadata</dt><dd>Metnin nereden geldiği bilgisi: dosya, başlık, bölüm, sayfa.</dd>
+        <dt>Chunk</dt><dd>Dokümanın arama ve LLM için bölünmüş küçük parçası.</dd>
+        <dt>Overlap</dt><dd>Ardışık sabit parçaların ortak karakterleri; sınırda kalan bilgi kaybolmasın diye.</dd>
+        <dt>Embedding</dt><dd>Metnin anlamını temsil eden sayı listesi (vektör). Bizimki 384 boyutlu.</dd>
+        <dt>Kosinüs benzerliği</dt><dd>İki vektörün aynı yöne ne kadar baktığı. 1 aynı, 0 ilgisiz.</dd>
+        <dt>Vector DB</dt><dd>Vektörleri saklayıp en yakınlarını hızlı bulan veritabanı. Bizde Chroma.</dd>
+        <dt>BM25</dt><dd>Ortak kelimelere ve kelimelerin nadirliğine göre puan veren klasik arama algoritması.</dd>
+        <dt>Hybrid search</dt><dd>Vektör ve kelime aramasının birleştirilmesi.</dd>
+        <dt>RRF</dt><dd>Reciprocal Rank Fusion: listeleri sıralarına göre birleştirme, 1 / (k + sıra).</dd>
+        <dt>Prompt</dt><dd>LLM'e gönderilen talimat metni.</dd>
+        <dt>Citation</dt><dd>Cevaptaki bilginin kaynağını [1] gibi göstermek.</dd>
+        <dt>Test seti</dt><dd>Sorular ve altın cevaplardan oluşan, sistemi puanlamak için kullanılan set.</dd>
+        <dt>Recall@k</dt><dd>Doğru parçaların ilk k sonuç içinde bulunma oranı.</dd>
+        <dt>Faithfulness</dt><dd>Sadakat: cevaptaki her bilginin kaynaklarda bulunması.</dd>
+        <dt>LLM-as-a-judge</dt><dd>Cevapları başka bir LLM'e puanlatmak.</dd>
+        <dt>Exponential backoff</dt><dd>Her yeniden denemede bekleme süresini ikiye katlamak.</dd>
+        <dt>Mock / monkeypatch</dt><dd>Testte gerçek bir parçayı (ör. Gemini) sahtesiyle değiştirmek.</dd>
+        <dt>.env</dt><dd>Gizli ayarların (API anahtarı) durduğu, git'e girmeyen dosya.</dd>
+      </dl>
+    </section>
+  </main>
+</div>
+
+<script>
+const QUIZ = {
+  m1: [
+    { q: "RAG'daki 'R' (Retrieval) adımı ne yapar?", o: ["Modeli yeni verilerle yeniden eğitir", "Soruyla ilgili belge parçalarını bulur", "Cevabı Türkçeye çevirir", "Cevabın doğruluğunu puanlar"], a: 1, w: "Retrieval 'getirmek' demek. Soruyla ilgili parçaları bulur; cevabı yazan G (Generation) adımıdır." },
+    { q: "RAG olmadan Gemini Mavikod'un izin sorusuna neden yanlış cevap verdi?", o: ["Gemini Türkçe bilmediği için", "API anahtarı yanlış olduğu için", "Mavikod'un dokümanlarını hiç görmediği için en yakın bildiği bilgiyi (İş Kanunu) verdi", "Soru çok uzun olduğu için"], a: 2, w: "Model sadece eğitimde gördüğünü bilir. Boşluğu kendi bildiği en yakın bilgiyle (14 gün) doldurdu." },
+    { q: "Doküman güncellendiğinde RAG sisteminde ne yapmak gerekir?", o: ["Modeli fine-tune etmek", "Index'i yeniden kurmak", "Prompt'u baştan yazmak", "Hiçbir şey, model kendisi öğrenir"], a: 1, w: "Bilgi modelin içinde değil, index'te durur. Dokümanı değiştirip index'i yeniden kurmak yeter." },
+  ],
+  m2: [
+    { q: "Metadata'yı neden yükleme aşamasında ekliyoruz?", o: ["Daha hızlı olduğu için", "Dosya adı ve sayfa sadece o anda bilindiği için; sonraki adımlar sadece metni görür", "Chroma öyle istediği için", "LLM metadata'yı okuyamadığı için"], a: 1, w: "Yükleme, kaynağın bilindiği tek andır. Orada kaybedilen bilgi sonradan geri getirilemez." },
+    { q: "PDF'te her sayfayı ayrı Document yapmanın amacı nedir?", o: ["Embedding'i hızlandırmak", "Sayfa numarasıyla kaynak gösterebilmek", "Boş sayfaları silmek", "Dosya boyutunu küçültmek"], a: 1, w: "Her sayfa ayrı olunca metadata'da 'page' tutulur ve cevap 'X.pdf, 7. sayfa' diyebilir." },
+    { q: "Sisteme .docx desteği eklemek için en az ne yapmak gerekir?", o: ["Bütün modülleri değiştirmek", "Bir yükleme fonksiyonu yazıp LOADERS sözlüğüne '.docx' satırı eklemek", "Embedding modelini değiştirmek", "Test setini silmek"], a: 1, w: "Diğer modüller sadece Document gördüğü için yeni format tek bir fonksiyon ve tek bir satırdır." },
+  ],
+  m3: [
+    { q: "size=400, overlap=100 iken parçalar hangi karakterlerden başlar?", o: ["0, 400, 800", "0, 300, 600", "0, 100, 200", "0, 500, 1000"], a: 1, w: "Adım = size − overlap = 300. Başlangıçlar 0, 300, 600..." },
+    { q: "Sabit chunking projede hangi soru türünde daha iyiydi ve neden?", o: ["Hileli sorularda, daha kısa olduğu için", "Birleştirme sorularında, komşu bölümleri tesadüfen aynı parçaya koyduğu için", "'Yok' sorularında, daha temkinli olduğu için", "Hiçbirinde"], a: 1, w: "Birleştirme doğruluğu: sabit %86, başlığa göre %71. 'Konuları karıştırma' kusuru burada avantaja döndü." },
+    { q: "Metadata'yı {**doc.metadata, ...} ile kopyalamazsak ne olur?", o: ["Hiçbir şey", "Program hata verir", "Bütün parçalar aynı sözlüğü paylaşır; birinde yapılan değişiklik hepsini ve orijinali değiştirir", "Metadata silinir"], a: 2, w: "Python'da sözlükler referansla taşınır. Bu yüzden testlerden biri tam bunu kontrol ediyor." },
+  ],
+  m4: [
+    { q: "Soru ve parçalar farklı embedding modelleriyle embed edilirse ne olur?", o: ["Daha iyi sonuç çıkar", "Benzerlikler anlamsızlaşır; iki modelin 'haritası' farklıdır", "Sadece yavaşlar", "Model otomatik çevirir"], a: 1, w: "Her modelin koordinat sistemi kendine özgüdür. Embedding modeli değişirse index de yeniden kurulmalı." },
+    { q: "İki normalize edilmiş vektörün kosinüs benzerliği 0 ise bu ne demek?", o: ["Aynı anlam", "Zıt anlam", "Vektörler dik; metinler büyük ölçüde ilgisiz", "Hesap hatası"], a: 2, w: "cos(90°) = 0. Aynı yön 1, dik 0, zıt yön −1." },
+    { q: "'Yemek kartına günde ne kadar para yükleniyor?' sorusu, '450 TL yüklenir' yazan parçayı nasıl buldu?", o: ["Ortak kelimeler sayesinde", "Anlamları vektör uzayında yakın olduğu için", "Şans eseri", "Parçanın başlığı soru ile aynı olduğu için"], a: 1, w: "Embedding, farklı kelimelerle anlatılan aynı anlamı yakalar. Kelime aramasından farkı bu." },
+  ],
+  m5: [
+    { q: "RRF'de neden skorlar yerine sıralar kullanılır?", o: ["Daha az kod olduğu için", "Kosinüs (0–1) ve BM25 (0–20) farklı ölçeklerde; skorları toplamak birini baskın yapar", "Chroma skor vermediği için", "Sıralar her zaman daha doğru olduğu için"], a: 1, w: "Ölçekler farklı. Sıra (1., 2., 3.) iki yöntemde de aynı anlamı taşır." },
+    { q: "Türkçe BM25'te kelimelerin ilk 5 harfini almanın amacı nedir?", o: ["Hızlandırmak", "Ekli halleri ('kartı', 'kartına') aynı kelime saymak", "Bellek kazanmak", "Büyük harfleri düzeltmek"], a: 1, w: "Türkçe eklemeli bir dil. İlk 5 harf kaba ama etkili bir kök bulma yöntemi." },
+    { q: "Projede 34 soruluk recall ölçümünde en iyi yöntem hangisiydi?", o: ["Vektör (%91)", "Hybrid (%97)", "Kelime/BM25 (%99)", "Hepsi eşit"], a: 2, w: "Bu veride BM25 tek başına bir tık önde çıktı. Hybrid'in her zaman kazanacağını varsaymamak gerekir." },
+  ],
+  m6: [
+    { q: "Cevap yanlış geldi. Hatanın retrieval'dan geldiğini nasıl anlarsın?", o: ["LLM'e sorarım", "LLM'e giden parçalarda doğru bilgi yoksa hata retrieval'dadır", "Cevap uzunsa", "Kaynak numarası yoksa"], a: 1, w: "cevap.parcalar'a bakarsın: Doğru parça yoksa retrieval, varsa LLM veya prompt hatası." },
+    { q: "Neden 'bilmiyorum' yerine sabit bir cümle ('Bu bilgi dokümanlarda yok.') istiyoruz?", o: ["Daha kibar olduğu için", "Kodla yakalanabilsin ve ölçülebilsin diye", "Gemini başka cümle yazamadığı için", "Daha kısa olduğu için"], a: 1, w: "Sabit cümle 'if BILGI_YOK in metin' ile yakalanır; 'bilgi yok deme' oranı böyle ölçüldü." },
+    { q: "#31 ('Yıllık izin 25 gün, değil mi?') neden yanlış cevaplandı?", o: ["Doğru parça bulunamadı", "Doğru parça vardı ama model yanlış varsayımı düzeltmek yerine 'bilgi yok' dedi (prompt hatası)", "API hatası oldu", "Test seti yanlıştı"], a: 1, w: "Retrieval doğruydu. 'Emin değilsen bilgi yok de' kuralı aşırı temkinliliğe yol açtı." },
+  ],
+  m7: [
+    { q: "Recall@5 %100 ise sistem mükemmel midir?", o: ["Evet", "Hayır; doğru parça gitse bile LLM yanlış cevap yazabilir", "Sadece 'yok' soruları için", "Evet, eğer k=5 ise"], a: 1, w: "Retrieval ve generation ayrı ölçülür. Recall sadece ilk yarıyı ölçer." },
+    { q: "Faithfulness (sadakat) neyi ölçer?", o: ["Cevabın doğru olup olmadığını", "Cevaptaki her bilginin kaynaklarda bulunup bulunmadığını", "Cevabın uzunluğunu", "Kaç kaynak gösterildiğini"], a: 1, w: "Bir cevap kaynağa sadık ama yanlış olabilir (yanlış parça geldiyse). İkisi farklı metrikler." },
+    { q: "Test setini doğrulayan kod projede ne buldu?", o: ["Hiçbir şey", "Bir altın cevaptaki anahtarın ('1 hafta') dokümanda o şekilde geçmediğini", "Kod hatası", "Eksik dosya"], a: 1, w: "Doküman '1, 2 ve 3 hafta' diyordu. Test setleri de insan elinden çıkar ve doğrulanmalıdır." },
+  ],
+  m8: [
+    { q: "Gemini istemcisini neden 'ihtiyaç anında' (lazy) oluşturuyoruz?", o: ["Daha hızlı olduğu için", "API anahtarı olmayan biri LLM kullanmayan kodları ve testleri de çalıştırabilsin diye", "Gemini öyle istediği için", "Bellek tasarrufu için"], a: 1, w: "Temiz kurulum testinde bu bulundu: import anında oluşturulunca anahtarsız her şey çöküyordu." },
+    { q: "400 (Bad Request) hatası gelince ne yapmalı?", o: ["32 sn bekleyip tekrar denemek", "Hemen vazgeçip hatayı iletmek; tekrar denemek düzeltmez", "Modeli değiştirmek", "Hatayı yok saymak"], a: 1, w: "400 kalıcı bir hatadır. Retry sadece 429/500/503 gibi geçici hatalarda anlamlıdır." },
+    { q: ".env ile .env.example arasındaki fark nedir?", o: ["Fark yok", ".env gerçek anahtarı tutar ve git'e girmez; .env.example anahtarsız şablondur ve git'e girer", ".env.example daha yenidir", ".env sadece Windows'ta çalışır"], a: 1, w: "Repoyu indiren kişi .env.example'ı kopyalayıp .env yapar ve kendi anahtarını yazar." },
+  ],
+  final: [
+    { m: "m1", q: "RAG'ın fine-tuning'e göre en büyük avantajı nedir?", o: ["Daha az GPU", "Bilgi değişince index'i güncellemek yeter ve cevaplar kaynak gösterebilir", "Her zaman daha doğrudur", "İnternet gerektirmez"], a: 1, w: "Modül 1" },
+    { m: "m2", q: "Taranmış (resim) bir PDF sayfası bizim yükleyicide ne olur?", o: ["Hata verir", "Metin katmanı olmadığı için boş gelir ve sessizce atlanır", "Otomatik OCR yapılır", "Resim olarak saklanır"], a: 1, w: "Modül 2" },
+    { m: "m3", q: "Parçalar çok küçük olursa ne olur?", o: ["Daha iyi olur", "Bağlam kaybolur: '450 TL' bulunur ama neyin 450 TL olduğu başka parçada kalır", "Embedding bulanıklaşır", "Daha pahalı olur"], a: 1, w: "Modül 3" },
+    { m: "m3", q: "Overlap neden var?", o: ["Daha fazla parça üretmek için", "Sınırda kalan bir cümle en az bir parçada bütün olarak bulunsun diye", "Embedding'i hızlandırmak için", "Metadata'yı kopyalamak için"], a: 1, w: "Modül 3" },
+    { m: "m4", q: "Embedding modelini değiştirdin. Ne yapmalısın?", o: ["Hiçbir şey", "Index'i yeniden kurmalısın", "Sadece prompt'u değiştirmelisin", "Test setini silmelisin"], a: 1, w: "Modül 4" },
+    { m: "m5", q: "Kelime araması (BM25) hangi durumda zorlanır?", o: ["'MFA' gibi kısaltmalarda", "Soru ile belge farklı kelimeler kullandığında ('tatil' / 'yıllık izin')", "Uzun sorularda", "Sayılarda"], a: 1, w: "Modül 5" },
+    { m: "m5", q: "RRF'de bir parça hem vektör hem kelime listesinde 1. sıradaysa (k=60) puanı nedir?", o: ["1/60", "2/61", "1/121", "60"], a: 1, w: "Modül 5: 1/(60+1) + 1/(60+1) = 2/61" },
+    { m: "m6", q: "LLM [7] numaralı bir kaynak yazdı ama 5 parça vermiştik. Kod ne yapar?", o: ["Hata verir", "O numarayı yok sayar", "7. parçayı arar", "Cevabı reddeder"], a: 1, w: "Modül 6: aralık dışı numaralar atılır, bunun için test de var." },
+    { m: "m6", q: "Hileli soru sorununu çözmek için en mantıklı ilk adım nedir?", o: ["Embedding modelini değiştirmek", "Prompt'a 'yanlış varsayımı kaynaklara göre düzelt' kuralı ekleyip tüm test setinde yeniden ölçmek", "Chunk boyutunu büyütmek", "Hileli soruları test setinden silmek"], a: 1, w: "Modül 6: hata prompt kaynaklıydı." },
+    { m: "m7", q: "LLM-as-a-judge kullanırken bilinen bir risk nedir?", o: ["Çok yavaş olması", "Hakemin yanılabilmesi ve cevabı yazan modelle aynıysa onu kayırabilmesi", "Türkçe bilmemesi", "Hiç risk yok"], a: 1, w: "Modül 7" },
+    { m: "m7", q: "40 soruluk sette doğruluk %92'den %90'a düştü. Bu ne kadar fark?", o: ["Çok büyük bir fark", "Yaklaşık tek bir soru; LLM çeşitliliği de skoru birkaç puan oynatabilir", "Önemsiz değil, %20", "Hesaplanamaz"], a: 1, w: "Modül 7" },
+    { m: "m8", q: "Testlerde neden gerçek Gemini API'sini çağırmıyoruz?", o: ["Yasak olduğu için", "Yavaş, ücretli ve her seferinde farklı cevap verdiği için; generate'i taklit ederiz", "Gemini testleri desteklemediği için", "Daha az kod için"], a: 1, w: "Modül 8" },
+  ],
+};
+
+// ---------- storage (her okuma/yazma güvenli; yoksa sayfa yine çalışır)
+const KEY = "rag-rehber-v1";
+function loadState() { try { return JSON.parse(localStorage.getItem(KEY)) || { done: {}, quiz: {} }; } catch (e) { return { done: {}, quiz: {} }; } }
+function saveState() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+const state = loadState();
+state.done = state.done || {}; state.quiz = state.quiz || {};
+
+// ---------- quiz
+function renderQuiz(box) {
+  const id = box.dataset.quiz;
+  const items = QUIZ[id];
+  state.quiz[id] = state.quiz[id] || {};
+  items.forEach((it, qi) => {
+    const wrap = document.createElement("div"); wrap.className = "q";
+    const t = document.createElement("div"); t.className = "q-text"; t.textContent = (qi + 1) + ". " + it.q; wrap.appendChild(t);
+    const opts = document.createElement("div"); opts.className = "opts"; wrap.appendChild(opts);
+    const why = document.createElement("div"); why.className = "why"; why.hidden = true; wrap.appendChild(why);
+    const buttons = it.o.map((txt, oi) => {
+      const b = document.createElement("button"); b.className = "opt"; b.type = "button"; b.textContent = txt;
+      b.addEventListener("click", () => answer(oi)); opts.appendChild(b); return b;
+    });
+    function answer(oi, silent) {
+      buttons.forEach((b, i) => { b.disabled = true; if (i === it.a) b.classList.add("right"); });
+      if (oi !== it.a) buttons[oi].classList.add("wrong");
+      const ok = oi === it.a;
+      why.hidden = false;
+      if (id === "final") why.innerHTML = ok ? "<b>Doğru.</b>" : "<b>Yanlış.</b> Tekrar et: " + it.w;
+      else why.innerHTML = (ok ? "<b>Doğru.</b> " : "<b>Yanlış.</b> ") + it.w;
+      state.quiz[id][qi] = oi;
+      if (!silent) { saveState(); if (id === "final") finalCheck(); }
+    }
+    if (state.quiz[id][qi] !== undefined) answer(state.quiz[id][qi], true);
+    box.appendChild(wrap);
+  });
+  if (id !== "final") {
+    const s = document.createElement("div"); s.className = "stat"; s.dataset.scoreFor = id; box.appendChild(s);
+  }
+}
+function updateScores() {
+  document.querySelectorAll("[data-score-for]").forEach(el => {
+    const id = el.dataset.scoreFor, ans = state.quiz[id] || {};
+    const n = Object.keys(ans).length, ok = Object.entries(ans).filter(([qi, oi]) => QUIZ[id][qi].a === oi).length;
+    el.textContent = n ? `Skor: ${ok} / ${QUIZ[id].length}` : "";
+  });
+}
+function finalCheck() {
+  const ans = state.quiz.final || {}, items = QUIZ.final;
+  if (Object.keys(ans).length < items.length) { document.getElementById("final-result").hidden = true; return; }
+  const ok = items.filter((it, i) => ans[i] === it.a).length;
+  const weak = [...new Set(items.filter((it, i) => ans[i] !== it.a).map(it => it.w.split(":")[0]))];
+  document.getElementById("final-result").hidden = false;
+  document.getElementById("final-score").textContent = `${ok} / ${items.length}`;
+  document.getElementById("final-advice").textContent = ok >= 10
+    ? "Proje 1'in kavramlarına hakimsin. Ellerini kirlet görevlerini de bitirdiysen Proje 2'ye hazırsın." + (weak.length ? " Yine de şuna bir göz at: " + weak.join(", ") + "." : "")
+    : "Şu modüllere dön ve görevlerini yap: " + weak.join(", ") + ". Sonra sınavı yeniden başlat.";
+}
+document.getElementById("final-reset").addEventListener("click", () => {
+  state.quiz.final = {}; saveState();
+  const box = document.querySelector('[data-quiz="final"]');
+  box.querySelectorAll(".q").forEach(q => q.remove());
+  renderQuiz(box); finalCheck(); box.scrollIntoView();
+});
+
+// ---------- module done + progress
+function updateProgress() {
+  const mods = ["m1","m2","m3","m4","m5","m6","m7","m8"];
+  const n = mods.filter(m => state.done[m]).length;
+  document.getElementById("prog-text").textContent = `${n} / 8 modül`;
+  document.getElementById("prog-bar").style.width = (n / 8 * 100) + "%";
+  document.querySelectorAll("nav.toc a[data-mod]").forEach(a => a.classList.toggle("done", !!state.done[a.dataset.mod]));
+  document.querySelectorAll("[data-done]").forEach(b => {
+    const on = !!state.done[b.dataset.done];
+    b.classList.toggle("on", on); b.textContent = on ? "✓ Bitirdim (geri al)" : "Modülü bitirdim";
+  });
+}
+document.querySelectorAll("[data-done]").forEach(b => b.addEventListener("click", () => {
+  state.done[b.dataset.done] = !state.done[b.dataset.done]; saveState(); updateProgress();
+}));
+
+document.querySelectorAll("[data-quiz]").forEach(renderQuiz);
+document.addEventListener("click", e => { if (e.target.classList && e.target.classList.contains("opt")) updateScores(); });
+updateScores(); updateProgress(); finalCheck();
+
+// ---------- chunking playground
+const SAMPLE = `# Yan Haklar
+
+Bu dokümanda maaş dışındaki haklar anlatılır.
+
+## Özel sağlık sigortası
+
+Tüm çalışanlar işe başladıkları ilk günden itibaren özel sağlık sigortası kapsamındadır. Diş tedavisi için yıllık 10.000 TL limit içerir.
+
+## Yemek kartı
+
+Ofiste ya da uzaktan çalışılan her iş günü için yemek kartına 450 TL yüklenir. İzinli olunan günlerde yükleme yapılmaz.
+
+## Eğitim bütçesi
+
+Her çalışanın yıllık 15.000 TL eğitim bütçesi vardır. Kullanılmayan bütçe bir sonraki yıla devretmez.
+
+## Eğitim ve konferans izni
+
+Yıllık izne ek olarak her çalışan yılda 3 gün eğitim izni kullanabilir.`;
+const cpText = document.getElementById("cp-text");
+cpText.value = SAMPLE;
+const HUES = ["--accent", "--good", "--bad"];
+function chunkFixed(text, size, overlap) {
+  const out = [], step = size - overlap;
+  if (step <= 0) return null;
+  for (let s = 0, i = 0; s < text.length; s += step, i++) {
+    const e = Math.min(s + size, text.length);
+    out.push({ text: text.slice(s, e), meta: `#${i} · karakter ${s}–${e}` });
+    if (e === text.length) break;
+  }
+  return out;
+}
+function chunkSection(text, max) {
+  const titleLine = text.split("\n").find(l => l.startsWith("# "));
+  let name = titleLine ? titleLine.slice(2).trim() : "Giriş", lines = [];
+  const sections = [];
+  for (const line of text.split("\n")) {
+    if (line.startsWith("## ")) { sections.push([name, lines.join("\n")]); name = line.slice(3).trim(); lines = [line]; }
+    else lines.push(line);
+  }
+  sections.push([name, lines.join("\n")]);
+  const out = [];
+  for (const [n, body] of sections) {
+    const b = body.trim(); if (!b) continue;
+    let groups = [b];
+    if (b.length > max) {
+      groups = []; let cur = "";
+      for (const p of b.split("\n\n")) {
+        const cand = cur ? cur + "\n\n" + p : p;
+        if (cand.length <= max || !cur) cur = cand; else { groups.push(cur); cur = p; }
+      }
+      if (cur) groups.push(cur);
+    }
+    groups.forEach(g => out.push({ text: g.trim(), meta: `#${out.length} · bölüm: ${n}` }));
+  }
+  return out;
+}
+function renderChunks() {
+  const method = document.getElementById("cp-method").value;
+  const size = Math.max(40, +document.getElementById("cp-size").value || 260);
+  const overlap = Math.max(0, +document.getElementById("cp-overlap").value || 0);
+  const out = document.getElementById("cp-out"), stat = document.getElementById("cp-stat");
+  out.innerHTML = "";
+  const chunks = method === "fixed" ? chunkFixed(cpText.value, size, overlap) : chunkSection(cpText.value, size);
+  if (!chunks) { stat.textContent = "overlap, size'dan küçük olmalı (yoksa adım 0 ya da eksi olur)."; return; }
+  const hits = chunks.filter(c => c.text.includes("450 TL"));
+  stat.textContent = `${chunks.length} parça · "450 TL" geçen parça: ${hits.map(h => h.meta.split(" ·")[0]).join(", ") || "yok"}`;
+  chunks.forEach((c, i) => {
+    const d = document.createElement("div"); d.className = "chunk";
+    const v = getComputedStyle(document.documentElement).getPropertyValue(HUES[i % 3]).trim();
+    d.style.borderColor = v;
+    const m = document.createElement("span"); m.className = "meta"; m.style.color = v; m.textContent = c.meta + ` · ${c.text.length} karakter`;
+    d.appendChild(m); d.appendChild(document.createTextNode(c.text)); out.appendChild(d);
+  });
+}
+["cp-method", "cp-size", "cp-overlap"].forEach(id => document.getElementById(id).addEventListener("input", renderChunks));
+cpText.addEventListener("input", renderChunks);
+renderChunks();
+
+// ---------- vector playground
+function vecPlay() {
+  const a = +document.getElementById("ang-a").value, b = +document.getElementById("ang-b").value;
+  document.getElementById("ang-a-v").textContent = a + "°"; document.getElementById("ang-b-v").textContent = b + "°";
+  const r = 90, rad = d => d * Math.PI / 180;
+  const set = (id, lid, d) => {
+    const x = 120 + r * Math.cos(rad(d)), y = 120 - r * Math.sin(rad(d));
+    const l = document.getElementById(id); l.setAttribute("x2", x.toFixed(1)); l.setAttribute("y2", y.toFixed(1));
+    const t = document.getElementById(lid);
+    t.setAttribute("x", (120 + (r + 4) * Math.cos(rad(d)) - 14).toFixed(1)); t.setAttribute("y", (120 - (r + 10) * Math.sin(rad(d)) + 4).toFixed(1));
+  };
+  set("va", "la", a); set("vb", "lb", b);
+  const c = Math.cos(rad(a - b));
+  document.getElementById("cos-v").textContent = c.toFixed(2);
+  document.getElementById("cos-t").textContent = c > .6 ? "Anlamca yakın: arama bu parçayı üst sıralara koyar." : c > .2 ? "Biraz ilgili." : c > -.2 ? "Neredeyse ilgisiz (dik açı)." : "Zıt yön: gerçek metin embedding'lerinde nadiren görülür.";
+}
+["ang-a", "ang-b"].forEach(id => document.getElementById(id).addEventListener("input", vecPlay));
+vecPlay();
+
+// ---------- RRF playground
+document.getElementById("rrf-a").value = ["Yan Haklar (giriş)", "Kafe ve ortak alanlardan çalışma", "Yurt dışından çalışma", "Tam uzaktan çalışma", "Ev ofis desteği"].join("\n");
+document.getElementById("rrf-b").value = ["Hibrit model", "Ev ofis desteği", "Tam uzaktan çalışma", "Yemek kartı", "Çalışma saatleri"].join("\n");
+function rrf() {
+  const k = Math.max(0, +document.getElementById("rrf-k").value || 0);
+  const la = document.getElementById("rrf-a").value.split("\n").map(s => s.trim()).filter(Boolean);
+  const lb = document.getElementById("rrf-b").value.split("\n").map(s => s.trim()).filter(Boolean);
+  const score = {}, ra = {}, rb = {};
+  la.forEach((n, i) => { score[n] = (score[n] || 0) + 1 / (k + i + 1); ra[n] = i + 1; });
+  lb.forEach((n, i) => { score[n] = (score[n] || 0) + 1 / (k + i + 1); rb[n] = i + 1; });
+  const rows = Object.keys(score).sort((x, y) => score[y] - score[x]);
+  const tb = document.getElementById("rrf-out"); tb.innerHTML = "";
+  rows.forEach((n, i) => {
+    const tr = document.createElement("tr"); if (i === 0) tr.className = "top";
+    [String(i + 1), n, ra[n] ? String(ra[n]) : "–", rb[n] ? String(rb[n]) : "–", score[n].toFixed(4)].forEach((v, j) => {
+      const td = document.createElement("td"); td.textContent = v; if (j !== 1) td.className = "num"; tr.appendChild(td);
+    });
+    tb.appendChild(tr);
+  });
+}
+["rrf-a", "rrf-b", "rrf-k"].forEach(id => document.getElementById(id).addEventListener("input", rrf));
+rrf();
+</script>
