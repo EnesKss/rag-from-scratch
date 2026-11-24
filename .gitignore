@@ -1,0 +1,19 @@
+# Gizli bilgiler — ASLA git'e girmez
+.env
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Vektör veritabanı her makinede yeniden üretilebilir
+index/
+
+# Hızlı deneme sonuçları ve loglar (asıl sonuçlar: sonuclar/baslik.json, sonuclar/sabit.json)
+sonuclar/hizli_*
+sonuclar/*.txt
+
+# Editör / araç ayarları
+.claude/
+.vscode/

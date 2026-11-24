@@ -1,0 +1,8 @@
+# Sürümler sabit: projeyi indiren herkes bizimle AYNI sürümleri kursun, sonuçlar tekrarlanabilsin.
+google-genai==3.6.1           # Gemini API istemcisi (cevap üretme)
+python-dotenv==1.2.4          # .env dosyasındaki API anahtarını okumak için
+pypdf==7.1.1                  # PDF'lerden metin çıkarmak için
+pytest==9.2.0                 # Yazdığımız kodun doğru çalıştığını test etmek için
+sentence-transformers==6.3.0  # Metni embedding'e (anlam vektörüne) çeviren modeller — bilgisayarında, ücretsiz
+chromadb==1.5.9               # Vector DB: vektörleri diske kaydeder ve hızlıca en yakınları bulur
+rank-bm25==0.2.2              # Anahtar kelime araması (BM25 algoritması)
